@@ -18,12 +18,11 @@
         }
 
         #matrix-container {
-            /* Doubled from 2rem to 4rem */
             font-size: 4rem; 
             letter-spacing: 10px;
             text-align: center;
             text-shadow: 0 0 12px #8b0000;
-            font-weight: bold;
+            font-weight: normal; /* Removed bold */
         }
 
         .shuffling {
@@ -35,7 +34,6 @@
             text-shadow: 0 0 20px #ff0000;
         }
 
-        /* Mobile adjustment to ensure 4rem doesn't wrap awkwardly */
         @media (max-width: 600px) {
             #matrix-container {
                 font-size: 2.5rem;
@@ -54,7 +52,8 @@
         const zalgoChars = "H̵̛̰Ẻ̵̲L̵̻̆Ḻ̵̅O̵̲͠W̵̰̉I̵̪͗Z̵̺͠0̵̠̈1̵̪̓X̵̩͆Y̵̰̐Z̵̨̍";
         
         let revealedCount = 0;
-        let displayArray = new Array(targetWord.length).fill('');
+        let dotCount = 0;
+        let isSpelledOut = false;
 
         function getRandomZalgo() {
             return zalgoChars[Math.floor(Math.random() * zalgoChars.length)];
@@ -62,6 +61,8 @@
 
         function updateDisplay() {
             let output = "";
+            
+            // Build the main word
             for (let i = 0; i < targetWord.length; i++) {
                 if (i < revealedCount) {
                     output += `<span class="revealed">${targetWord[i]}</span>`;
@@ -69,22 +70,38 @@
                     output += `<span class="shuffling">${getRandomZalgo()}</span>`;
                 }
             }
+
+            // Handle the dots once the word is finished
+            if (isSpelledOut) {
+                let dots = ".".repeat(dotCount + 1);
+                output += `<span class="revealed">${dots}</span>`;
+            }
+
             container.innerHTML = output;
         }
 
-        // Shuffle speed (kept fast for the effect)
-        const shuffleInterval = setInterval(() => {
+        // Shuffle visual loop
+        setInterval(() => {
             updateDisplay();
         }, 80);
 
-        // Reveal loop - Now 30% faster (1050ms instead of 1500ms)
+        // Word reveal loop
         const revealInterval = setInterval(() => {
             if (revealedCount < targetWord.length) {
                 revealedCount++;
             } else {
                 clearInterval(revealInterval);
+                isSpelledOut = true;
+                startDotLoop();
             }
         }, 1050);
+
+        // Dot cycling loop (. .. ...)
+        function startDotLoop() {
+            setInterval(() => {
+                dotCount = (dotCount + 1) % 3;
+            }, 600);
+        }
     </script>
 </body>
 </html>
