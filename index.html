@@ -1,25 +1,81 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mortify.ing</title>
     <style>
-      html, body {
-        margin: 0;
-        height: 100%;
-      }
-      body {
-        overflow: hidden;
-      }
-      img {
-        width: 100vw;
-        height: 100vh;
-        object-fit: cover; /* fill window, cropping if needed */
-        display: block;
-      }
+        body {
+            background-color: #000;
+            color: #ff0000; /* Red fits that high-contrast/grainy look */
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #matrix-container {
+            font-size: 2rem;
+            letter-spacing: 5px;
+            text-align: center;
+            text-shadow: 0 0 8px #8b0000;
+        }
+
+        .shuffling {
+            opacity: 0.7;
+        }
+
+        .revealed {
+            color: #fff;
+            text-shadow: 0 0 15px #ff0000;
+        }
     </style>
-  </head>
-  <body>
-    <!-- Put your image in the same folder and update the filename -->
-    <img src="photo.jpg" alt="">
-  </body>
+</head>
+<body>
+
+    <div id="matrix-container"></div>
+
+    <script>
+        const targetWord = "PATIENCE";
+        const container = document.getElementById('matrix-container');
+        const zalgoChars = "H̵̛̰Ẻ̵̲L̵̻̆Ḻ̵̅O̵̲͠W̵̰̉I̵̪͗Z̵̺͠0̵̠̈1̵̪̓X̵̩͆Y̵̰̐Z̵̨̍";
+        
+        let revealedCount = 0;
+        let displayArray = new Array(targetWord.length).fill('');
+
+        function getRandomZalgo() {
+            return zalgoChars[Math.floor(Math.random() * zalgoChars.length)];
+        }
+
+        function updateDisplay() {
+            let output = "";
+            for (let i = 0; i < targetWord.length; i++) {
+                if (i < revealedCount) {
+                    output += `<span class="revealed">${targetWord[i]}</span>`;
+                } else {
+                    output += `<span class="shuffling">${getRandomZalgo()}</span>`;
+                }
+            }
+            container.innerHTML = output;
+        }
+
+        // Shuffle loop
+        const shuffleInterval = setInterval(() => {
+            updateDisplay();
+        }, 80);
+
+        // Reveal loop (one letter every 1.5 seconds)
+        const revealInterval = setInterval(() => {
+            if (revealedCount < targetWord.length) {
+                revealedCount++;
+            } else {
+                clearInterval(revealInterval);
+                // Optional: keep shuffling if you want, or stop.
+            }
+        }, 1500);
+    </script>
+</body>
 </html>
