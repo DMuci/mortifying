@@ -7,7 +7,7 @@
     <style>
         body {
             background-color: #000;
-            color: #ff0000; 
+            color: #ff0000; /* Crisp red terminal text */
             font-family: 'Courier New', Courier, monospace;
             display: flex;
             justify-content: center;
@@ -17,99 +17,108 @@
             overflow: hidden;
         }
 
-        #matrix-container {
+        #terminal-container {
             font-size: 4rem; 
-            letter-spacing: 10px;
-            text-shadow: 0 0 12px #8b0000;
+            letter-spacing: 5px;
+            text-shadow: 0 0 10px #8b0000;
             font-weight: normal;
-            
-            /* STABILIZATION FIXES */
-            display: inline-block;
-            text-align: left; /* Keep start point fixed */
-            min-width: 650px;  /* Keeps the container from snapping sizes */
             white-space: nowrap;
         }
 
-        .shuffling {
-            opacity: 0.6;
+        /* The Blinking Cursor */
+        #cursor {
+            display: inline-block;
+            background-color: #ff0000;
+            width: 25px;
+            height: 4rem;
+            margin-left: 5px;
+            vertical-align: bottom;
+            box-shadow: 0 0 10px #8b0000;
+            animation: blink 0.8s infinite;
         }
 
-        .revealed {
-            color: #fff;
-            text-shadow: 0 0 20px #ff0000;
+        @keyframes blink {
+            0%, 49% { background-color: #ff0000; }
+            50%, 100% { background-color: transparent; }
         }
 
-        /* Adjusting for mobile so it doesn't overflow the screen */
-        @media (max-width: 700px) {
-            #matrix-container {
+        /* Responsive sizing for mobile */
+        @media (max-width: 800px) {
+            #terminal-container {
                 font-size: 2rem;
-                min-width: 320px;
-                letter-spacing: 5px;
+                letter-spacing: 3px;
+            }
+            #cursor {
+                width: 12px;
+                height: 2rem;
             }
         }
     </style>
 </head>
 <body>
 
-    <div id="matrix-container"></div>
+    <div>
+        <span id="terminal-container"></span><span id="cursor"></span>
+    </div>
 
     <script>
-        const targetWord = "PATIENCE";
-        const container = document.getElementById('matrix-container');
-        // Simplified Zalgo set to prevent extreme width variations
-        const zalgoChars = "H̵E̵L̵L̵O̵W̵I̵Z̵X̵Y̵Z̵";
+        // Add whatever phrases you want to cycle through here
+        const phrases = [
+            "PATIENCE...",
+            "SYSTEM OFFLINE.",
+            "CONNECTING...",
+            "MORTIFYING."
+        ];
+
+        const container = document.getElementById('terminal-container');
         
-        let revealedCount = 0;
-        let dotCount = 0;
-        let isSpelledOut = false;
+        let phraseIndex = 0;
+        let characterIndex = 0;
+        let isDeleting = false;
 
-        function getRandomZalgo() {
-            return zalgoChars[Math.floor(Math.random() * zalgoChars.length)];
-        }
+        // Speed settings (in milliseconds)
+        const typeSpeed = 150;    // Time per letter when typing
+        const deleteSpeed = 75;   // Time per letter when backspacing
+        const waitBeforeDelete = 2500; // How long to display the finished sentence
 
-        function updateDisplay() {
-            let output = "";
-            
-            for (let i = 0; i < targetWord.length; i++) {
-                if (i < revealedCount) {
-                    output += `<span class="revealed">${targetWord[i]}</span>`;
-                } else {
-                    output += `<span class="shuffling">${getRandomZalgo()}</span>`;
+        function typeLoop() {
+            const currentPhrase = phrases[phraseIndex];
+
+            if (!isDeleting) {
+                // Typing out
+                container.textContent = currentPhrase.substring(0, characterIndex + 1);
+                characterIndex++;
+
+                if (characterIndex === currentPhrase.length) {
+                    // Pause when the sentence is fully typed
+                    setTimeout(() => {
+                        isDeleting = true;
+                        typeLoop();
+                    }, waitBeforeDelete);
+                    return;
+                }
+            } else {
+                // Backspacing
+                container.textContent = currentPhrase.substring(0, characterIndex - 1);
+                characterIndex--;
+
+                if (characterIndex === 0) {
+                    isDeleting = false;
+                    // Move to the next sentence (loops back to 0 at the end)
+                    phraseIndex = (phraseIndex + 1) % phrases.length;
+                    
+                    // Small pause at the completely empty console before typing next line
+                    setTimeout(typeLoop, 500);
+                    return;
                 }
             }
 
-            if (isSpelledOut) {
-                // Using non-breaking spaces for empty dot slots to keep width perfect
-                let dots = ".".repeat(dotCount + 1);
-                let padding = "&nbsp;".repeat(2 - dotCount); 
-                output += `<span class="revealed">${dots}${padding}</span>`;
-            } else {
-                // Placeholder space for dots while spelling to prevent jump at the end
-                output += `&nbsp;&nbsp;&nbsp;`;
-            }
-
-            container.innerHTML = output;
+            // Keep the loop moving based on current action state
+            setTimeout(typeLoop, isDeleting ? deleteSpeed : typeSpeed);
         }
 
-        setInterval(() => {
-            updateDisplay();
-        }, 80);
-
-        const revealInterval = setInterval(() => {
-            if (revealedCount < targetWord.length) {
-                revealedCount++;
-            } else {
-                clearInterval(revealInterval);
-                isSpelledOut = true;
-                startDotLoop();
-            }
-        }, 1050);
-
-        function startDotLoop() {
-            setInterval(() => {
-                dotCount = (dotCount + 1) % 3;
-            }, 300);
-        }
+        // Initialize the console loop
+        typeLoop();
     </script>
 </body>
 </html>
